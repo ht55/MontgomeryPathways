@@ -33,14 +33,14 @@ export const DEMO_PROFILES: DemoProfile[] = [
   },
   {
     id: "workforce",
-    label: "Diane, 42",
+    label: "Diane, 52",
     emoji: "💼",
     tagline: "Single parent · Stable job seeker · Healthcare interest",
     profile: {
-      age: 42,
+      age: 52,
       zip_code: "36116",                        
       education: "some_college",
-      income_bracket: "under_10k",
+      income_bracket: "under_50k",
       career_interest: "healthcare",
       has_vehicle: true,
       prior_conviction: false,
@@ -49,11 +49,11 @@ export const DEMO_PROFILES: DemoProfile[] = [
   },
   {
     id: "retention",
-    label: "Jordan, 24",
+    label: "Jordan, 26",
     emoji: "🎓",
     tagline: "Recent grad · Considering leaving Montgomery · Tech interest",
     profile: {
-      age: 24,
+      age: 26,
       zip_code: "36117",                      
       education: "bachelors",
       income_bracket: "under_35k",

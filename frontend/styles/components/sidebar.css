@@ -5,6 +5,10 @@
 .sidebar {
   width: 220px;
   min-width: 220px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
   background: var(--color-sidebar-bg);
   backdrop-filter: var(--glass-blur) var(--glass-saturate);
   -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);

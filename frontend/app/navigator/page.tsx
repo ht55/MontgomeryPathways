@@ -16,7 +16,6 @@ import type {
 
 import "@/styles/components/navigator.css"
 
-// ── Constants ─────────────────────────────────────────────────
 const EDUCATION_OPTIONS = [
   { value: "no_diploma",    label: "No High School Diploma"   },
   { value: "ged",           label: "High School / GED"        },
@@ -50,36 +49,40 @@ const CAREER_OPTIONS = [
   { value: "trades",        label: "Skilled Trades"                 },
 ] as const
 
-// ── Page ──────────────────────────────────────────────────────
 export default function NavigatorPage() {
   const { result, loading, error, generate } = useNavigator()
 
-  const [form, setForm] = useState<NavigatorRequest>({
-    age:              35,
-    zip_code:         "36104",
-    education:        "high_school",
-    income_bracket:   "0",
-    career_interest:  "construction",
+  const [form, setForm] = useState({
+    age:              "" as number | "",
+    zip_code:         "",
+    education:        "" as NavigatorRequest["education"] | "",
+    income_bracket:   "" as NavigatorRequest["income_bracket"] | "",
+    career_interest:  "" as NavigatorRequest["career_interest"] | "",
     has_vehicle:      false,
     prior_conviction: false,
-    conviction_type:  undefined,
+    conviction_type:  undefined as string | undefined,
   })
 
   const [activeTab, setActiveTab] = useState<"careers" | "resources" | "plan">("careers")
-  const [activeId, setActiveId] = useState<string | undefined>(undefined)
-  const patch = (p: Partial<NavigatorRequest>) => setForm(prev => ({ ...prev, ...p }))
+  const [activeId, setActiveId]   = useState<string | undefined>(undefined)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const patch = (p: Partial<typeof form>) => setForm(prev => ({ ...prev, ...p }))
 
   const handleSubmit = async () => {
-    await generate(form)
+    if (!form.age || !form.zip_code || !form.education || !form.income_bracket || !form.career_interest) {
+      setFormError("Please fill in all fields before continuing.")
+      return
+    }
+    setFormError(null)
+    await generate(form as NavigatorRequest)
     setActiveTab("careers")
   }
 
   return (
     <div className="navigator-layout">
-
       <AppSidebar activePage="navigator" />
 
-      {/* ── Left: Input panel ───────────────────────────── */}
       <div className="navigator-input">
         <div className="navigator-input__header">
           <h2 className="navigator-input__title">Resident Profile</h2>
@@ -91,8 +94,9 @@ export default function NavigatorPage() {
           <input
             className="nav-field__input"
             type="number" min={16} max={75}
+            placeholder="Your age"
             value={form.age}
-            onChange={e => patch({ age: Number(e.target.value) })}
+            onChange={e => patch({ age: e.target.value === "" ? "" : parseInt(e.target.value) || "" })}
           />
         </div>
 
@@ -101,9 +105,9 @@ export default function NavigatorPage() {
           <input
             className="nav-field__input"
             type="text"
+            placeholder="e.g. 36104"
             value={form.zip_code}
             onChange={e => patch({ zip_code: e.target.value })}
-            placeholder="e.g. 36104"
           />
         </div>
 
@@ -114,6 +118,7 @@ export default function NavigatorPage() {
             value={form.education}
             onChange={e => patch({ education: e.target.value as NavigatorRequest["education"] })}
           >
+            <option value="" disabled>Select your education level</option>
             {EDUCATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
@@ -125,6 +130,7 @@ export default function NavigatorPage() {
             value={form.income_bracket}
             onChange={e => patch({ income_bracket: e.target.value as NavigatorRequest["income_bracket"] })}
           >
+            <option value="" disabled>Select your income range</option>
             {INCOME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
@@ -136,6 +142,7 @@ export default function NavigatorPage() {
             value={form.career_interest}
             onChange={e => patch({ career_interest: e.target.value as NavigatorRequest["career_interest"] })}
           >
+            <option value="" disabled>Select a career area</option>
             {CAREER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
@@ -171,11 +178,9 @@ export default function NavigatorPage() {
           </div>
         )}
 
-        <button
-          className="nav-submit-btn"
-          onClick={handleSubmit}
-          disabled={loading}
-        >
+        {formError && <div className="nav-error">{formError}</div>}
+
+        <button className="nav-submit-btn" onClick={handleSubmit} disabled={loading}>
           <span className="nav-submit-btn__icon">✦</span>
           <span className="nav-submit-btn__label">
             {loading ? "Analyzing your path…" : "Find My Opportunities"}
@@ -184,39 +189,25 @@ export default function NavigatorPage() {
         </button>
 
         {error && <div className="nav-error">{error}</div>}
-
       </div>
 
-      {/* ── Right: Output panel ──────────────────────────── */}
       <div className="navigator-output">
-        <DemoProfileBar             
-          onSelect={(profile, id) => { setForm(profile); setActiveId(id) }}
+        <DemoProfileBar
+          onSelect={(profile, id) => { setForm({ ...profile, conviction_type: profile.conviction_type ?? undefined }); setActiveId(id) }}
           activeId={activeId}
           loading={loading}
         />
-
         {loading  && <LoadingState />}
         {!loading && !result && <EmptyState />}
         {!loading && result  && (
-          <Results
-            result={result}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
+          <Results result={result} activeTab={activeTab} onTabChange={setActiveTab} />
         )}
-
       </div>
-
     </div>
   )
 }
 
-// ── Results ───────────────────────────────────────────────────
-function Results({
-  result,
-  activeTab,
-  onTabChange,
-}: {
+function Results({ result, activeTab, onTabChange }: {
   result: NavigatorResponse
   activeTab: "careers" | "resources" | "plan"
   onTabChange: (t: "careers" | "resources" | "plan") => void
@@ -230,25 +221,20 @@ function Results({
             className={`nav-tab${activeTab === tab ? " nav-tab--active" : ""}`}
             onClick={() => onTabChange(tab)}
           >
-            {tab === "careers"   ? "🎯 Career Paths"
-           : tab === "resources" ? "🤝 Support Resources"
-           :                       "📋 Action Plan"}
+            {tab === "careers" ? "🎯 Career Paths" : tab === "resources" ? "🤝 Support Resources" : "📋 Action Plan"}
           </button>
         ))}
       </div>
-
       {activeTab === "careers" && (
         <div className="nav-career-list">
           {result.career_paths.map((c, i) => <CareerCard key={i} career={c} index={i} defaultOpen={i === 0} />)}
         </div>
       )}
-
       {activeTab === "resources" && (
         <div className="nav-resource-grid">
           {result.support_resources.map((r, i) => <ResourceCard key={i} resource={r} />)}
         </div>
       )}
-
       {activeTab === "plan" && (
         <div className="nav-plan">
           <div className="nav-plan__title">Your 8-Week Action Plan</div>
@@ -261,11 +247,9 @@ function Results({
   )
 }
 
-// ── Sub-components ────────────────────────────────────────────
 function CareerCard({ career, index, defaultOpen }: { career: CareerPath; index: number; defaultOpen: boolean }) {
   const [open, setOpen] = useState(defaultOpen)
   const demandClass = career.demand_level === "High" ? "rose" : career.demand_level === "Growing" ? "amber" : "sky"
-
   return (
     <div className="career-card">
       <div className="career-card__header" onClick={() => setOpen(!open)}>
@@ -281,14 +265,13 @@ function CareerCard({ career, index, defaultOpen }: { career: CareerPath; index:
           <span className="career-card__chevron">{open ? "↑" : "↓"}</span>
         </div>
       </div>
-
       {open && (
         <div className="career-card__body">
           <div className="career-card__divider" />
           <div className="career-card__stats">
-            <StatPill label="Time to Hire"     value={career.time_to_employment}   accent="var(--color-longterm)" />
-            <StatPill label="Risk Reduction"   value={career.recidivism_reduction} accent="var(--color-success)"  />
-            <StatPill label="City Saves"       value={career.city_savings}         accent="var(--color-gold)"     />
+            <StatPill label="Time to Hire"   value={career.time_to_employment}   accent="var(--color-longterm)" />
+            <StatPill label="Risk Reduction" value={career.recidivism_reduction} accent="var(--color-success)"  />
+            <StatPill label="City Saves"     value={career.city_savings}         accent="var(--color-gold)"     />
           </div>
           <div className="career-card__steps-label">Path to Employment</div>
           <div className="career-card__steps">
@@ -349,19 +332,11 @@ function StatPill({ label, value, accent }: { label: string; value: string; acce
 }
 
 function Toggle({ label, description, checked, onChange }: {
-  label: string
-  description?: string
-  checked: boolean
-  onChange: (v: boolean) => void
+  label: string; description?: string; checked: boolean; onChange: (v: boolean) => void
 }) {
   return (
-    <div
-      className={`nav-toggle${checked ? " nav-toggle--on" : ""}`}
-      onClick={() => onChange(!checked)}
-    >
-      <div className="nav-toggle__track">
-        <div className="nav-toggle__thumb" />
-      </div>
+    <div className={`nav-toggle${checked ? " nav-toggle--on" : ""}`} onClick={() => onChange(!checked)}>
+      <div className="nav-toggle__track"><div className="nav-toggle__thumb" /></div>
       <div>
         <div className="nav-toggle__label">{label}</div>
         {description && <div className="nav-toggle__desc">{description}</div>}
@@ -373,9 +348,7 @@ function Toggle({ label, description, checked, onChange }: {
 function LoadingState() {
   return (
     <div className="nav-state nav-state--loading">
-      <div className="nav-state__ring">
-        <div className="nav-state__ring-inner">✦</div>
-      </div>
+      <div className="nav-state__ring"><div className="nav-state__ring-inner">✦</div></div>
       <div className="nav-state__text">Analyzing your profile…</div>
       <div className="nav-state__sub">Finding real opportunities in Montgomery</div>
     </div>

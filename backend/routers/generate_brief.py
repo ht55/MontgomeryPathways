@@ -71,7 +71,7 @@ Projected Outcomes:
 - Net City ROI: {fmt_dollars(req.netROI)}
 
 Focus on equity, long-term economic resilience, and the compounding value of investing in marginalized populations. Be specific, data-driven, and forward-looking.
-Do NOT use markdown formatting. Write in plain paragraphs only."""
+Write in plain paragraphs only. Do NOT use markdown, headers, or memo format (no To/From/Date/Subject lines). Start directly with the policy analysis."""
 
     response = client.models.generate_content(
         model=settings.gemini_model,
