@@ -9,8 +9,7 @@ Cache strategy:
 - Avoids redundant Bright Data API calls during demos / hackathon judging
 
 Rate limiting:
-- Max 10 requests per IP per hour
-- Returns 429 with a clear message if exceeded
+- Disabled for hackathon demo — re-enable for production
 """
 
 import httpx
@@ -58,31 +57,15 @@ def _set_cache(key: tuple, result: dict[str, str]) -> None:
 
 # ── Rate limiter ──────────────────────────────────────────────
 # Max requests per IP per window
-_RATE_LIMIT_MAX      = 10
+_RATE_LIMIT_MAX      = 50
 _RATE_LIMIT_WINDOW_S = 3600  # 1 hour
 
 # ip → list of timestamps
 _rate_limit_store: dict[str, list[float]] = defaultdict(list)
 
 def check_rate_limit(ip: str) -> tuple[bool, int]:
-    """
-    Returns (is_allowed, requests_remaining).
-    Call before processing any Navigator request.
-    """
-    now = time.time()
-    window_start = now - _RATE_LIMIT_WINDOW_S
-
-    # Prune old timestamps
-    _rate_limit_store[ip] = [
-        t for t in _rate_limit_store[ip] if t > window_start
-    ]
-
-    count = len(_rate_limit_store[ip])
-    if count >= _RATE_LIMIT_MAX:
-        return False, 0
-
-    _rate_limit_store[ip].append(now)
-    return True, _RATE_LIMIT_MAX - count - 1
+    # Disabled for hackathon demo — re-enable for production
+    return True, 999
 
 # ── Bright Data fetch ─────────────────────────────────────────
 
