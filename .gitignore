@@ -38,4 +38,6 @@ __pycache__/
 *.tsbuildinfo
 backend/.env
 frontend/node_modules/
+*.backup.ts
+
 
