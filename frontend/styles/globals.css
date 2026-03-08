@@ -1,0 +1,99 @@
+/* ============================================================
+   GLOBALS — reset + base + font imports
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: -webkit-fill-available;
+}
+
+body {
+  background-color: var(--color-nightsky);
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── main panel ──────── */
+.dashboard__main,
+.navigator-output,
+.navigator-input {
+  background: rgba(30, 25, 55, 0.75);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--color-scrollbar-thumb); border-radius: var(--radius-full); }
+
+/* ── Remove number input spinners ───────────────────────── */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+/* ── Remove default button styles ───────────────────────── */
+button { font-family: inherit; }
+
+/* ── Remove default link underlines ─────────────────────── */
+a { text-decoration: none; }
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Safari: EXTRA backdrop-filter's blur control */
+@supports (-webkit-backdrop-filter: blur(1px)) {
+  .gauge-panel,
+  .gauge-card,
+  .policy-brief,
+  .metrics-column,
+  .sidebar,
+  .navigator-input,
+  .navigator-output {
+    -webkit-backdrop-filter: blur(1px) saturate(1.4);
+    backdrop-filter: blur(1px) saturate(1.4);
+  }
+}
+
+/* Firefox: EXTRA fallback for backdrop-filter */
+@-moz-document url-prefix() {
+  .gauge-panel,
+  .policy-brief,
+  .metrics-column {
+    background: rgba(15, 15, 28, 0.92);
+  }
+  .gauge-card {
+    background: rgba(25, 25, 45, 0.85);
+  }
+  .sidebar {
+    background: rgba(12, 12, 24, 0.95);
+  }
+  .navigator-input,
+  .navigator-output {
+    background: rgba(36, 17, 54, 0.721);
+  }
+}

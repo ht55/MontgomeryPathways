@@ -1,0 +1,43 @@
+/* Portal tooltip — renders on document.body, always on top */
+
+.gauge-portal-tooltip {
+  position: fixed;
+  width: 210px;
+  padding: 10px 14px;
+  background: rgba(10, 8, 35, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  z-index: 99999;
+  animation: tooltipFadeIn 0.15s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Question mark button */
+.gauge-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.3);
+  vertical-align: middle;
+  padding: 0;
+  transition: color 0.15s ease;
+  position: relative;
+  top: -1px;
+}
+
+.gauge-info-btn:hover {
+  color: rgba(255, 255, 255, 0.8);
+}

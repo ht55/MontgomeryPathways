@@ -1,0 +1,7 @@
+// Project root's tsconfig.json
+{
+  "files": [],
+  "references": [
+    { "path": "./frontend" }
+  ]
+}
