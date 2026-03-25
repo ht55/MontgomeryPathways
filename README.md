@@ -9,7 +9,7 @@
 > *Montgomery Pathways exists to close that gap, from both sides at once.*
 
 **AI-powered civic intelligence platform for Montgomery, Alabama.**
-Built for the WorldWide Vibe Hackathon 2026 — solo🐱
+Built for the WorldWide Vibe Hackathon 2026
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-montgomerypathways.vercel.app-orange)](https://montgomerypathways.vercel.app/dashboard)
 

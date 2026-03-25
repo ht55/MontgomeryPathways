@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from config import get_settings
-import google.generativeai as genai
+from google import genai
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
