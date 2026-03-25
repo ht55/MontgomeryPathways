@@ -64,7 +64,7 @@ def create_app() -> FastAPI:
         allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["POST", "GET"],
-        allow_headers=["Content-Type"],  # be explicit, not "*"
+        allow_headers=["Content-Type", "X-Gemini-Key", "X-Brightdata-Token"],
     )
 
     # ── Routers ───────────────────────────────────────────────

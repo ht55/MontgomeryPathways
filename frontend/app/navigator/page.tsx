@@ -3,28 +3,26 @@
 "use client"
 
 import { useState } from "react"
-import { AppSidebar } from "@/layout/AppSidebar"
+import { AppSidebar }   from "@/layout/AppSidebar"
 import { useNavigator } from "@/hooks/useNavigator"
+import { useApiKeys }   from "@/hooks/useApiKeys"
+import { ApiKeysModal } from "@/components/ui/ApiKeysModal"
 import { DemoProfileBar } from "@/components/navigator/DemoProfileBar"
 import type {
-  NavigatorRequest,
-  NavigatorResponse,
-  CareerPath,
-  SupportResource,
-  ActionStep,
+  NavigatorRequest, NavigatorResponse,
+  CareerPath, SupportResource, ActionStep,
 } from "@/hooks/useNavigator"
-
 import "@/styles/components/navigator.css"
 
 const EDUCATION_OPTIONS = [
-  { value: "no_diploma",    label: "No High School Diploma"   },
-  { value: "ged",           label: "High School / GED"        },
-  { value: "high_school",   label: "High School Diploma"      },
-  { value: "some_college",  label: "Some College"             },
-  { value: "associates",    label: "Associate's Degree"       },
-  { value: "bachelors",     label: "Bachelor's Degree"        },
-  { value: "masters",       label: "Master's Degree"          },
-  { value: "doctoral",      label: "Doctoral Degree+"         },
+  { value: "no_diploma",   label: "No High School Diploma" },
+  { value: "ged",          label: "High School / GED"      },
+  { value: "high_school",  label: "High School Diploma"    },
+  { value: "some_college", label: "Some College"           },
+  { value: "associates",   label: "Associate's Degree"     },
+  { value: "bachelors",    label: "Bachelor's Degree"      },
+  { value: "masters",      label: "Master's Degree"        },
+  { value: "doctoral",     label: "Doctoral Degree+"       },
 ] as const
 
 const INCOME_OPTIONS = [
@@ -38,19 +36,21 @@ const INCOME_OPTIONS = [
 ] as const
 
 const CAREER_OPTIONS = [
-  { value: "construction",  label: "Trades / Construction"          },
-  { value: "technology",    label: "Technology / Data"              },
-  { value: "healthcare",    label: "Healthcare / Social Services"   },
-  { value: "logistics",     label: "Logistics / Transportation"     },
-  { value: "manufacturing", label: "Manufacturing"                  },
-  { value: "education",     label: "Education"                      },
-  { value: "food_service",  label: "Food Service"                   },
-  { value: "retail",        label: "Retail"                         },
-  { value: "trades",        label: "Skilled Trades"                 },
+  { value: "construction",  label: "Trades / Construction"        },
+  { value: "technology",    label: "Technology / Data"            },
+  { value: "healthcare",    label: "Healthcare / Social Services" },
+  { value: "logistics",     label: "Logistics / Transportation"   },
+  { value: "manufacturing", label: "Manufacturing"                },
+  { value: "education",     label: "Education"                    },
+  { value: "food_service",  label: "Food Service"                 },
+  { value: "retail",        label: "Retail"                       },
+  { value: "trades",        label: "Skilled Trades"               },
 ] as const
 
 export default function NavigatorPage() {
   const { result, loading, error, generate } = useNavigator()
+  const { keys, saveKeys } = useApiKeys()
+  const [showKeyModal, setShowKeyModal] = useState(false)
 
   const [form, setForm] = useState({
     age:              "" as number | "",
@@ -64,7 +64,7 @@ export default function NavigatorPage() {
   })
 
   const [activeTab, setActiveTab] = useState<"careers" | "resources" | "plan">("careers")
-  const [activeId, setActiveId]   = useState<string | undefined>(undefined)
+  const [activeId,  setActiveId]  = useState<string | undefined>(undefined)
   const [formError, setFormError] = useState<string | null>(null)
 
   const patch = (p: Partial<typeof form>) => setForm(prev => ({ ...prev, ...p }))
@@ -75,7 +75,8 @@ export default function NavigatorPage() {
       return
     }
     setFormError(null)
-    await generate(form as NavigatorRequest)
+    if (!keys.geminiKey) { setShowKeyModal(true); return }
+    await generate(form as NavigatorRequest, keys.geminiKey, keys.brightdataToken ?? undefined)
     setActiveTab("careers")
   }
 
@@ -102,22 +103,14 @@ export default function NavigatorPage() {
 
         <div className="nav-field">
           <label className="nav-field__label">ZIP Code</label>
-          <input
-            className="nav-field__input"
-            type="text"
-            placeholder="e.g. 36104"
-            value={form.zip_code}
-            onChange={e => patch({ zip_code: e.target.value })}
-          />
+          <input className="nav-field__input" type="text" placeholder="e.g. 36104"
+            value={form.zip_code} onChange={e => patch({ zip_code: e.target.value })} />
         </div>
 
         <div className="nav-field">
           <label className="nav-field__label">Education Level</label>
-          <select
-            className="nav-field__select"
-            value={form.education}
-            onChange={e => patch({ education: e.target.value as NavigatorRequest["education"] })}
-          >
+          <select className="nav-field__select" value={form.education}
+            onChange={e => patch({ education: e.target.value as NavigatorRequest["education"] })}>
             <option value="" disabled>Select your education level</option>
             {EDUCATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -125,11 +118,8 @@ export default function NavigatorPage() {
 
         <div className="nav-field">
           <label className="nav-field__label">Current Income</label>
-          <select
-            className="nav-field__select"
-            value={form.income_bracket}
-            onChange={e => patch({ income_bracket: e.target.value as NavigatorRequest["income_bracket"] })}
-          >
+          <select className="nav-field__select" value={form.income_bracket}
+            onChange={e => patch({ income_bracket: e.target.value as NavigatorRequest["income_bracket"] })}>
             <option value="" disabled>Select your income range</option>
             {INCOME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -137,11 +127,8 @@ export default function NavigatorPage() {
 
         <div className="nav-field">
           <label className="nav-field__label">Career Interest</label>
-          <select
-            className="nav-field__select"
-            value={form.career_interest}
-            onChange={e => patch({ career_interest: e.target.value as NavigatorRequest["career_interest"] })}
-          >
+          <select className="nav-field__select" value={form.career_interest}
+            onChange={e => patch({ career_interest: e.target.value as NavigatorRequest["career_interest"] })}>
             <option value="" disabled>Select a career area</option>
             {CAREER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -151,30 +138,20 @@ export default function NavigatorPage() {
 
         <div className="nav-toggles">
           <span className="nav-field__label">Situation</span>
-          <Toggle
-            label="I have a vehicle"
-            description="Affects job location options"
-            checked={form.has_vehicle}
-            onChange={v => patch({ has_vehicle: v })}
-          />
-          <Toggle
-            label="I have a prior conviction"
-            description="We'll find employers who hire fairly"
+          <Toggle label="I have a vehicle" description="Affects job location options"
+            checked={form.has_vehicle} onChange={v => patch({ has_vehicle: v })} />
+          <Toggle label="I have a prior conviction" description="We'll find employers who hire fairly"
             checked={form.prior_conviction}
-            onChange={v => patch({ prior_conviction: v, conviction_type: v ? form.conviction_type : undefined })}
-          />
+            onChange={v => patch({ prior_conviction: v, conviction_type: v ? form.conviction_type : undefined })} />
         </div>
 
         {form.prior_conviction && (
           <div className="nav-field">
             <label className="nav-field__label">Type of conviction (optional)</label>
-            <input
-              className="nav-field__input"
-              type="text"
+            <input className="nav-field__input" type="text"
               value={form.conviction_type ?? ""}
               onChange={e => patch({ conviction_type: e.target.value || undefined })}
-              placeholder="e.g. non-violent, drug offense…"
-            />
+              placeholder="e.g. non-violent, drug offense…" />
           </div>
         )}
 
@@ -199,10 +176,19 @@ export default function NavigatorPage() {
         />
         {loading  && <LoadingState />}
         {!loading && !result && <EmptyState />}
-        {!loading && result  && (
-          <Results result={result} activeTab={activeTab} onTabChange={setActiveTab} />
-        )}
+        {!loading && result  && <Results result={result} activeTab={activeTab} onTabChange={setActiveTab} />}
       </div>
+
+      {showKeyModal && (
+        <ApiKeysModal
+          onSave={(g, b) => {
+            saveKeys(g, b)
+            setShowKeyModal(false)
+            generate(form as NavigatorRequest, g, b || undefined)
+          }}
+          onClose={() => setShowKeyModal(false)}
+        />
+      )}
     </div>
   )
 }
@@ -216,11 +202,8 @@ function Results({ result, activeTab, onTabChange }: {
     <>
       <div className="nav-tabs">
         {(["careers", "resources", "plan"] as const).map(tab => (
-          <button
-            key={tab}
-            className={`nav-tab${activeTab === tab ? " nav-tab--active" : ""}`}
-            onClick={() => onTabChange(tab)}
-          >
+          <button key={tab} className={`nav-tab${activeTab === tab ? " nav-tab--active" : ""}`}
+            onClick={() => onTabChange(tab)}>
             {tab === "careers" ? "🎯 Career Paths" : tab === "resources" ? "🤝 Support Resources" : "📋 Action Plan"}
           </button>
         ))}

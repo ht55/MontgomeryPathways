@@ -17,13 +17,13 @@ from config import get_settings
 logger = logging.getLogger(__name__)
 
 
-def _get_client() -> genai.Client:
-    """Lazily initialised Gemini client (singleton via module cache)."""
+def _get_client(gemini_key: str | None = None) -> genai.Client:
     settings = get_settings()
-    return genai.Client(api_key=settings.gemini_api_key)
+    key = gemini_key or settings.gemini_api_key
+    return genai.Client(api_key=key)
 
 
-async def generate_json(system_prompt: str, user_prompt: str) -> dict:
+async def generate_json(system_prompt: str, user_prompt: str, gemini_key: str | None = None) -> dict:
     """
     Call the AI model and return parsed JSON.
     Instructs the model to return only valid JSON — no markdown fences.
@@ -33,7 +33,7 @@ async def generate_json(system_prompt: str, user_prompt: str) -> dict:
         Exception: on API errors (let the router handle HTTP response codes).
     """
     settings = get_settings()
-    client = _get_client()
+    client = _get_client(gemini_key)
 
     full_prompt = f"""{system_prompt}
 

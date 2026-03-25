@@ -1,7 +1,5 @@
 """
 backend/services/navigator.py
----------------------
-Core business logic for the Resident Navigator.
 Orchestrates: Bright Data context → AI prompt → validated response.
 """
 
@@ -22,30 +20,18 @@ You respect the person's intelligence and lived experience.
 
 You always return valid JSON matching the exact schema provided. No exceptions."""
 
-
-# Gemini 3 Flash input limit: ~1M tokens, but large context = slow + expensive.
-# Keep web context lean — each section capped to avoid prompt bloat.
-_MAX_CHARS_PER_SECTION = 2_000   # ~500 tokens per section
-_MAX_SECTIONS          = 5       # max 5 sections × 2000 chars = ~10K chars total
-
+_MAX_CHARS_PER_SECTION = 2_000
+_MAX_SECTIONS          = 5
 
 def _truncate_web_context(web_context: dict[str, str]) -> dict[str, str]:
-    """
-    Cap each web section to avoid hitting token limits.
-    Logs a warning when truncation occurs so it's visible in dev.
-    """
     truncated = {}
     for key, content in web_context.items():
         if len(content) > _MAX_CHARS_PER_SECTION:
-            logger.warning(
-                f"Truncating web context '{key}': "
-                f"{len(content)} → {_MAX_CHARS_PER_SECTION} chars"
-            )
+            logger.warning(f"Truncating web context '{key}': {len(content)} → {_MAX_CHARS_PER_SECTION} chars")
             truncated[key] = content[:_MAX_CHARS_PER_SECTION] + "\n[...truncated]"
         else:
             truncated[key] = content
     return truncated
-
 
 def _build_user_prompt(request: NavigatorRequest, web_context: dict[str, str]) -> str:
     conviction_text = ""
@@ -131,29 +117,24 @@ Rules:
 - Be direct — this person needs real information, not motivation posters"""
 
 
-async def get_navigator_plan(request: NavigatorRequest) -> NavigatorResponse:
-    """
-    Main orchestration function:
-    1. Gather real-time Montgomery data from Bright Data
-    2. Build context-aware prompt
-    3. Call AI provider
-    4. Validate and return typed response
-    """
+async def get_navigator_plan(
+    request: NavigatorRequest,
+    gemini_key: str | None = None,
+    brightdata_token: str | None = None,
+) -> NavigatorResponse:
     logger.info(f"Navigator request: career={request.career_interest}, zip={request.zip_code}")
 
-    # Step 1: Real-time web context
+    # Step 1: Real-time web context (uses user's Bright Data token if provided)
     web_context = await gather_montgomery_context(
         career_interest=request.career_interest.value,
         has_vehicle=request.has_vehicle,
         prior_conviction=request.prior_conviction,
+        brightdata_token=brightdata_token,
     )
-
-    # Step 1b: Truncate to stay within token budget
     web_context = _truncate_web_context(web_context)
 
-    # Step 2 & 3: Build prompt and call AI
+    # Step 2 & 3: Build prompt and call AI (uses user's Gemini key if provided)
     user_prompt = _build_user_prompt(request, web_context)
-    raw_data = await generate_json(SYSTEM_PROMPT, user_prompt)
+    raw_data = await generate_json(SYSTEM_PROMPT, user_prompt, gemini_key=gemini_key)
 
-    # Step 4: Validate with Pydantic (raises ValidationError on bad AI output)
     return NavigatorResponse(**raw_data)

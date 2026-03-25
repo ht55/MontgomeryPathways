@@ -1,7 +1,5 @@
 """
 backend/routers/navigator.py
-Thin layer — input validation, error handling, HTTP response only.
-Zero business logic here.
 """
 import logging
 from fastapi import APIRouter, HTTPException, Request
@@ -15,35 +13,30 @@ logger = logging.getLogger(__name__)
 
 @router.post("", response_model=NavigatorResponse)
 async def navigator(request: NavigatorRequest, http_request: Request) -> NavigatorResponse:
-    """
-    Generate a personalised opportunity plan for a Montgomery resident.
-    Orchestrates:
-    - Rate limiting (10 requests/IP/hour)
-    - Real-time job/resource data via Bright Data (cached 1hr)
-    - AI-powered plan generation via Gemini
-    - Pydantic validation of the response
-    """
     client_ip = http_request.client.host if http_request.client else "unknown"
-    allowed, remaining = check_rate_limit(client_ip)
+    allowed, _ = check_rate_limit(client_ip)
 
     if not allowed:
         logger.error(f"[RATE_LIMIT] IP {client_ip} hit Navigator rate limit")
         raise HTTPException(
             status_code=429,
-            detail="Request limit reached. Please contact hirokotakano525@gmail.com and I'll restore access immediately. 🙏",
+            detail="Request limit reached. Please contact hirokotakano525@gmail.com.",
             headers={"Retry-After": "3600"},
         )
 
-    logger.info(f"Navigator request from {client_ip} — {remaining} requests remaining this hour")
+    gemini_key       = http_request.headers.get("X-Gemini-Key") or None
+    brightdata_token = http_request.headers.get("X-Brightdata-Token") or None
+
+    if not gemini_key:
+        raise HTTPException(status_code=401, detail="Gemini API key required. Please add your key in the app settings.")
 
     try:
-        return await get_navigator_plan(request)
+        return await get_navigator_plan(request, gemini_key=gemini_key, brightdata_token=brightdata_token)
     except ValidationError as e:
-        raise HTTPException(
-            status_code=502,
-            detail=f"AI response validation failed: {e.error_count()} error(s). Try again.",
-        )
+        raise HTTPException(status_code=502, detail=f"AI response validation failed: {e.error_count()} error(s).")
     except ValueError as e:
         raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
+        if "API_KEY_INVALID" in str(e) or "invalid" in str(e).lower():
+            raise HTTPException(status_code=401, detail="Invalid Gemini API key.")
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")

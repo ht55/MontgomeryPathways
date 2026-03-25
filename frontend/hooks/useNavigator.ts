@@ -1,10 +1,4 @@
 "use client"
-/**
- * hooks/useNavigator.ts
- * Calls the FastAPI backend for resident opportunity plans.
- * Frontend never touches Gemini or Bright Data directly —
- * API keys stay server-side only.
- */
 import { useState } from "react"
 
 export type EducationLevel =
@@ -32,56 +26,34 @@ export type NavigatorRequest = {
 }
 
 export type TrainingStep = {
-  step:        number
-  description: string
-  duration:    string
-  provider:    string
-  cost:        string
+  step: number; description: string; duration: string; provider: string; cost: string
 }
 
 export type CareerPath = {
-  title:                string
-  salary_range:         string
-  time_to_employment:   string
-  demand_level:         string
-  training_steps:       TrainingStep[]
-  recidivism_reduction: string
-  city_savings:         string
+  title: string; salary_range: string; time_to_employment: string
+  demand_level: string; training_steps: TrainingStep[]
+  recidivism_reduction: string; city_savings: string
 }
 
 export type SupportResource = {
-  name:      string
-  type:      string
-  phone:     string
-  address:   string
-  hours:     string
-  relevance: string
+  name: string; type: string; phone: string; address: string; hours: string; relevance: string
 }
 
 export type ActionStep = {
-  week:        string
-  title:       string
-  description: string
-  contact?:    string | null
+  week: string; title: string; description: string; contact?: string | null
 }
 
 export type NavigatorResponse = {
-  career_paths:      CareerPath[]
-  support_resources: SupportResource[]
-  action_plan:       ActionStep[]
+  career_paths: CareerPath[]; support_resources: SupportResource[]; action_plan: ActionStep[]
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
-
-const RATE_LIMIT_MSG =
-  "⚠️ Request limit reached (10/hour). " +
-  "Please contact hirokotakano525@gmail.com and we'll restore access immediately. 🙏"
 
 type UseNavigatorReturn = {
   result:   NavigatorResponse | null
   loading:  boolean
   error:    string | null
-  generate: (request: NavigatorRequest) => Promise<void>
+  generate: (request: NavigatorRequest, geminiKey: string, brightdataToken?: string) => Promise<void>
 }
 
 export function useNavigator(): UseNavigatorReturn {
@@ -89,26 +61,26 @@ export function useNavigator(): UseNavigatorReturn {
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState<string | null>(null)
 
-  const generate = async (request: NavigatorRequest) => {
-    setLoading(true)
-    setError(null)
-    setResult(null)
+  const generate = async (request: NavigatorRequest, geminiKey: string, brightdataToken?: string) => {
+    setLoading(true); setError(null); setResult(null)
     try {
       const res = await fetch(`${API_BASE}/api/navigator`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(request),
+        method: "POST",
+        headers: {
+          "Content-Type":       "application/json",
+          "X-Gemini-Key":       geminiKey,
+          ...(brightdataToken ? { "X-Brightdata-Token": brightdataToken } : {}),
+        },
+        body: JSON.stringify(request),
       })
 
-      if (res.status === 429) throw new Error(RATE_LIMIT_MSG)
-
+      if (res.status === 429) throw new Error("⚠️ Request limit reached.")
+      if (res.status === 401) throw new Error("⚠️ Invalid Gemini API key. Please check your key in settings.")
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: "Unknown error" }))
         throw new Error(err.detail ?? `HTTP ${res.status}`)
       }
-
-      const data: NavigatorResponse = await res.json()
-      setResult(data)
+      setResult(await res.json())
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.")
     } finally {
