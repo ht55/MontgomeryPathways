@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # ── Google Gemini ────────────────────────────────────────
-    gemini_api_key:  str
+    ggemini_api_key: str = ""
     gemini_model:    str = "gemini-2.5-flash"
 
     # ── Bright Data ──────────────────────────────────────────
