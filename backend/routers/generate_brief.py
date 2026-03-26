@@ -52,18 +52,6 @@ async def generate_brief(req: BriefRequest, http_request: Request):
 
     prompt = f"""You are a senior policy advisor for Montgomery, Alabama. Generate a concise executive policy brief (3-4 paragraphs) based on this simulation:
 
-    try:
-        brief = await generate_text(
-            system_prompt="You are a senior policy advisor for Montgomery, Alabama.",
-            user_prompt=prompt,
-            gemini_key=gemini_key,
-        )
-        return {"brief": brief}
-    except Exception as e:
-        if "API_KEY_INVALID" in str(e) or "invalid" in str(e).lower():
-            raise HTTPException(status_code=401, detail="Invalid Gemini API key.")
-        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
-
 Time Horizon: {req.horizon} years
 
 Policy Inputs:
@@ -81,3 +69,15 @@ Projected Outcomes:
 - Net City ROI: {fmt_dollars(req.netROI)}
 
 Write in plain paragraphs only. Do NOT use markdown, headers, or memo format (no To/From/Date/Subject lines). Start directly with the policy analysis. Focus on equity, long-term economic resilience, and the compounding value of investing in marginalized populations."""
+
+    try:
+        brief = await generate_text(
+            system_prompt="You are a senior policy advisor for Montgomery, Alabama.",
+            user_prompt=prompt,
+            gemini_key=gemini_key,
+        )
+        return {"brief": brief}
+    except Exception as e:
+        if "API_KEY_INVALID" in str(e) or "invalid" in str(e).lower():
+            raise HTTPException(status_code=401, detail="Invalid Gemini API key.")
+        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
