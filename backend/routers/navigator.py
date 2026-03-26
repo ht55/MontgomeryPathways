@@ -20,7 +20,7 @@ async def navigator(request: NavigatorRequest, http_request: Request) -> Navigat
         logger.error(f"[RATE_LIMIT] IP {client_ip} hit Navigator rate limit")
         raise HTTPException(
             status_code=429,
-            detail="Request limit reached. Please contact hirokotakano525@gmail.com.",
+            detail="Request limit reached.",
             headers={"Retry-After": "3600"},
         )
 

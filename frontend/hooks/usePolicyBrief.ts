@@ -7,7 +7,7 @@ type UsePolicyBriefReturn = {
   generate: (geminiKey: string) => Promise<void>
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+const API_BASE = ""
 
 export function usePolicyBrief(
   inputs: SimulationInput, result: SimulationOutput, horizon: TimeHorizon,
@@ -21,7 +21,10 @@ export function usePolicyBrief(
     try {
       const res = await fetch(`${API_BASE}/api/generate-brief`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Gemini-Key": geminiKey },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Gemini-Key": geminiKey,
+        },
         body: JSON.stringify({
           trainingIncrease:          inputs.trainingIncrease,
           employerIncentiveIncrease: inputs.employerIncentiveIncrease,

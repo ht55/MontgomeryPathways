@@ -3,48 +3,60 @@
   <img src="navigator.png" height="150" alt="App Screenshot 2" />
 </p>
 
-# Montgomery Pathways 🏙️
+# 🏙️ Montgomery Pathways
+### AI-Powered Policy Simulation & Resident Opportunity Platform
 
-> *Cities grow. And when they do, some people move forward — and some get left further behind.*
-> *Montgomery Pathways exists to close that gap, from both sides at once.*
+> *"Cities grow. And when they do, some people move forward — and some get left further behind.*
+> *Montgomery Pathways exists to close that gap, from both sides at once."*
 
-**AI-powered civic intelligence platform for Montgomery, Alabama.**
-Built for the WorldWide Vibe Hackathon 2026
-
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-montgomerypathways.vercel.app-orange)](https://montgomerypathways.vercel.app/dashboard)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-montgomery.ht55.dev-orange)](https://montgomery.ht55.dev/dashboard)
 
 ---
 
-## 🌐 Live Demo
+## Why This Exists
 
-**[montgomerypathways.vercel.app/dashboard](https://montgomerypathways.vercel.app/dashboard)**
+When Meta announced its $800M data center in Montgomery, Alabama, the city entered a new era of growth. But rapid economic development has a shadow side — it tends to leave behind the people who need opportunity most: formerly incarcerated residents, low-income families, young adults without clear career paths.
 
-Three demo profiles are ready to go — no setup needed:
-- **Marcus, 34** — Recently released, no vehicle, skilled trades interest
-- **Diane, 52** — Single parent, stable job seeker, healthcare
-- **Jordan, 26** — Recent grad, considering leaving Montgomery, tech interest
+Montgomery already has a 32% recidivism rate, 17% poverty rate, and one of the highest youth out-migration rates in the South. The question isn't whether the city will grow — it's *who* that growth will include.
+
+Montgomery Pathways is built to answer that question with data, not guesswork.
 
 ---
 
 ## What It Does
 
-Montgomery Pathways is a dual-interface platform designed around one belief: **sustainable city growth only works when both sides of the equation move forward together.**
+Two tools. One mission.
 
-### 🏛️ City Intelligence Simulator
-A policy ROI forecasting tool for city planners and decision makers.
+### 🎛️ City Intelligence Simulator (`/dashboard`)
+A real-time policy simulation engine for city planners and decision-makers.
 
-- Adjust **6 policy levers**: Training Investment, Employer Incentives, Transport Support, Safety Improvement, Affordable Housing, School Quality
-- Forecast outcomes across **4 time horizons**: 5 / 10 / 15 / 20 years
-- Metrics include: Recidivism Rate, Cost Saved, Tax Revenue Gain, Youth Retention, New Households, Net City ROI
-- Generate an **AI Executive Policy Brief** powered by Gemini 2.5 Flash, grounded in live Montgomery data
+Adjust 6 policy levers — Training Investment, Employer Incentives, Transport Support, Safety Improvement, Affordable Housing, School Quality — across 5–20 year horizons and watch the projected outcomes update instantly:
 
-### 🧭 Resident Navigator
-A personalized opportunity engine for residents — and for the case workers and social workers who support them.
+- Recidivism Rate reduction
+- Incarceration Cost Savings
+- Tax Revenue Gain
+- Opportunity Gap reduction
+- Youth Retention Rate
+- New Households formed
+- Long-term Tax Base Growth
+- Net City ROI
 
-- Enter a resident profile: age, ZIP, education, income, career interest, situation
+Hit **Generate Brief** and receive a Gemini-powered executive policy brief grounded in the simulation data — ready for a city council presentation.
+
+### 🧭 Resident Navigator (`/navigator`)
+A personalized opportunity planner for Montgomery residents — and for the case workers and social workers who support them.
+
+Enter a resident profile: age, ZIP, education, income, career interest, transportation access, and prior conviction status — and receive:
+
+- 2–3 tailored career pathways with real wage data and realistic timelines
+- Real local support resources scraped live from Montgomery orgs via Bright Data
 - Conviction-aware: finds employers with **Ban-the-Box policies** in Montgomery
-- Returns a **top career match** with real wage data, realistic timeline, and reduced recidivism risk
-- Generates a personalized **8-week action plan** with real phone numbers — not generic web links
+- A week-by-week **8-week action plan** with real phone numbers — not generic web links
+
+**Three demo profiles are ready to go — no setup needed:**
+- **Marcus, 34** — Recently released, no vehicle, skilled trades interest
+- **Diane, 52** — Single parent, stable job seeker, healthcare
+- **Jordan, 26** — Recent grad, considering leaving Montgomery, tech interest
 
 ---
 
@@ -55,22 +67,20 @@ A personalized opportunity engine for residents — and for the case workers and
 │                   DATA LAYER                        │
 │  Bright Data Web Unlocker → brightdata.py           │
 │  scrape-baselines.ts → simulation-constants.ts      │
-│  (auto-generated from live job postings,            │
-│   housing data, employer Ban-the-Box stances)       │
+│  (auto-generated from Census, BLS, HUD, AL DOC)     │
 └──────────────────┬──────────────────────────────────┘
                    │
 ┌──────────────────▼──────────────────────────────────┐
 │                   API LAYER                         │
 │  FastAPI (Python) — deployed on Railway             │
 │  routers/ → generate_brief.py, navigator.py         │
-│  schemas/ → Pydantic validation                     │
 │  services/ → ai_provider.py, brightdata.py          │
-│  Fallback handling on every endpoint                │
+│  File-based cache (30-day TTL)                      │
 └──────────────────┬──────────────────────────────────┘
                    │
 ┌──────────────────▼──────────────────────────────────┐
 │                   AI LAYER                          │
-│  Gemini 2.5 Flash                                   │
+│  Gemini 2.5 Flash (user-supplied API key)           │
 │  Context-rich prompts include live Montgomery data  │
 │  Generates: Executive Policy Briefs                 │
 │             8-week Resident Action Plans            │
@@ -85,173 +95,108 @@ A personalized opportunity engine for residents — and for the case workers and
 └─────────────────────────────────────────────────────┘
 ```
 
-**Official Data Sources:**
-- City of Montgomery Open Data
-- U.S. Census ACS 5-Year
-- BLS Occupational Employment Data
-- HUD Fair Housing Data
-- Alabama DOC Recidivism Statistics
-- Meta Investment Forecast (Montgomery)
+---
+
+## Simulation Engine
+
+The dashboard simulation is not a black box. It's built on real data such as [City of Montgomery Open Data](https://opendata.montgomeryal.gov/) and many others:
+
+| Variable | Value | Source |
+|---|---|---|
+| Population | 224,980 | U.S. Census ACS 2023 |
+| Median Income | $60,739 | U.S. Census ACS 2023 |
+| Poverty Rate | 17.0% | U.S. Census ACS 2023 |
+| Recidivism Rate | 32% | Alabama DOC Annual Report 2023 |
+| Incarceration Cost | $28,600/yr | Vera Institute |
+| Youth Retention | 48% | IRS SOI Migration Data |
+| Unemployment | 5.2% | BLS LAUS |
+| Median 2BR Rent | $1,050 | HUD FMR 2024 |
+
+All simulation math is deterministic and auditable in `frontend/services/engine/`.
 
 ---
 
-## Bright Data Integration
+## Running Locally
 
-This project uses **Bright Data Web Unlocker** for live data scraping — and it's central to what makes this platform real, not a prototype.
-
-### What gets scraped
-- Local job postings in Montgomery (wages, requirements, employer stances)
-- Employer Ban-the-Box policy status
-- Housing availability and cost data
-- Baseline economic indicators
-
-### How it works
-```
-scrape-baselines.ts  →  Bright Data Web Unlocker
-                     →  Raw data
-                     →  simulation-constants.ts (auto-generated)
-                     →  Powers all simulation calculations
-```
-
-The key insight: **`simulation-constants.ts` is not hardcoded.** It is generated from scraped live data. Every time baselines are refreshed, the simulation reflects the real Montgomery — not assumptions.
-
-### Backend service
-```python
-# backend/services/brightdata.py
-# Handles Web Unlocker requests with fallback handling
-```
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js (TypeScript) |
-| Backend | FastAPI (Python) |
-| AI | Gemini 2.5 Flash |
-| Data Scraping | Bright Data Web Unlocker |
-| Frontend Deploy | Vercel |
-| Backend Deploy | Railway |
-| Data Sources | Census API, BLS, HUD |
-
----
-
-## Setup & Installation
-
-### Prerequisites
-- Node.js 18+
-- Python 3.11+
-- Bright Data account (Web Unlocker)
-- Google AI Studio API key (Gemini)
-
-### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/montgomerypathways_v2.git
-cd montgomerypathways_v2
-```
-
-### 2. Backend setup
-```bash
+# Backend
 cd backend
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-Create `backend/.env`:
-```env
-GEMINI_API_KEY=your_gemini_api_key
-BRIGHTDATA_API_KEY=your_brightdata_api_key
-BRIGHTDATA_ZONE=your_zone_name
-```
-
-Start the backend:
-```bash
+cp .env.example .env  # add your GEMINI_API_KEY
 uvicorn main:app --reload
-```
 
-### 3. Frontend setup
-```bash
+# Frontend
 cd frontend
 npm install
-```
-
-Create `frontend/.env.local`:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
-
-Start the frontend:
-```bash
+cp .env.local.example .env.local  # set NEXT_PUBLIC_API_URL=http://localhost:8000
 npm run dev
 ```
 
-### 4. (Optional) Refresh scraped baselines
+### Environment Variables
+
+**Backend `.env`**
+```
+GEMINI_API_KEY=your_key
+BRIGHTDATA_API_TOKEN=your_token  # optional — app uses cache without it
+BRIGHTDATA_WEB_UNLOCKER_ZONE=unlocker1
+ENVIRONMENT=development
+ALLOWED_ORIGINS=http://localhost:3000
+```
+
+**Frontend `.env.local`**
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+### (Optional) Refresh Bright Data cache
+```bash
+cd backend
+python prewarm.py  # requires backend running on localhost:8000
+```
+Without a `BRIGHTDATA_API_TOKEN`, the app uses `data/cache.json` automatically.
+
+### (Optional) Refresh scraped baselines
 ```bash
 cd frontend
 npx ts-node services/engine/scrape-baselines.ts
 ```
 
-This regenerates `simulation-constants.ts` from live Bright Data scraping.
-Without a `BRIGHTDATA_API_TOKEN`, the app uses `data/cache.json` automatically.
+---
+
+## Challenge Coverage
+
+| Challenge Area | How It's Addressed |
+|---|---|
+| **Workforce & Economic Growth** | Navigator matches residents to careers + training pathways; Simulator quantifies workforce investment ROI |
+| **Civic Access & Communication** | Plain-language AI briefs translate complex policy data for residents and officials alike |
+| **Public Safety & Emergency Response** | Recidivism simulation models the public safety impact of upstream investment |
+| **Smart Cities & Infrastructure** | Real-time data pipeline (Bright Data) + simulation engine = infrastructure for evidence-based governance |
 
 ---
 
-## Project Structure
+## Commercialization Pathway
 
-```
-montgomerypathways_v2/
-├── backend/
-│   ├── routers/
-│   │   ├── generate_brief.py    # Policy brief generation
-│   │   └── navigator.py         # Resident opportunity engine
-│   ├── schemas/
-│   │   └── navigator.py         # Pydantic models
-│   ├── services/
-│   │   ├── ai_provider.py       # Gemini integration
-│   │   ├── brightdata.py        # Bright Data Web Unlocker
-│   │   └── navigator.py         # Business logic
-│   └── main.py
-├── frontend/
-│   ├── app/
-│   │   ├── dashboard/           # City Intelligence Simulator
-│   │   └── navigator/           # Resident Navigator
-│   ├── components/
-│   │   ├── dashboard/           # GaugePanel, MetricsColumn, PolicyBrief
-│   │   ├── navigator/           # DemoProfileBar
-│   │   └── ui/                  # CircularGauge
-│   ├── hooks/
-│   │   ├── useSimulation.ts
-│   │   ├── useNavigator.ts
-│   │   └── usePolicyBrief.ts
-│   └── services/engine/
-│       ├── simulator.ts
-│       ├── simulation-constants.ts   # Auto-generated via Bright Data
-│       └── scrape-baselines.ts
-```
+1. **Municipal SaaS** — License the City Intelligence Simulator to city governments ($15–40K/yr). Montgomery itself is the first potential customer.
+2. **Workforce Development Grants** — The Resident Navigator qualifies for federal Second Chance Act funding and DOL workforce development grants.
+3. **Replication** — The architecture is city-agnostic. Every city with a Census API and a Bright Data zone can run their own instance. Birmingham, Selma, and Mobile are natural next deployments.
 
 ---
 
 ## The Philosophy Behind This
 
-Before writing a single line of code, I spent time researching Montgomery's real data, talking with city officials, mentors, and residents. One question guided every design decision:
+Before writing a single line of code, I spent time researching Montgomery's real data, talking with mentors and residents. One question guided every design decision:
 
 **How do you build a system that shows difficult truths — without crushing hope?**
 
-The answer was two tools, intentionally in the same platform. Because the city and its residents are part of the same equation. And sustainable growth only works when both sides can see the full picture.
+The answer was two tools, intentionally in the same platform. Because the city and its residents are part of the same equation. Sustainable growth only works when both sides can see the full picture.
 
 ---
 
 ## Built By
 
-**Me** — Solo submission
-🐱 **Nioh** — Cat, co-pilot, present for every single commit
-
-*GenAI Works WorldWide Vibe Hackathon 2026 — Sponsored by City of Montgomery, Alabama, Bright Data*
+**ht55** — Solo submission  
+*GenAI Works WorldWide Vibe Hackathon 2026 — Sponsored by Bright Data*
 
 ---
 
-## License
-
-MIT License — see [LICENSE](./LICENSE) for details.
+*Built with care for Montgomery, Alabama — a city on the edge of something great.*

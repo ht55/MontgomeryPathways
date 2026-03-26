@@ -47,7 +47,7 @@ export type NavigatorResponse = {
   career_paths: CareerPath[]; support_resources: SupportResource[]; action_plan: ActionStep[]
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+const API_BASE = ""
 
 type UseNavigatorReturn = {
   result:   NavigatorResponse | null
@@ -67,8 +67,9 @@ export function useNavigator(): UseNavigatorReturn {
       const res = await fetch(`${API_BASE}/api/navigator`, {
         method: "POST",
         headers: {
-          "Content-Type":       "application/json",
-          "X-Gemini-Key":       geminiKey,
+          "Content-Type":    "application/json",
+          "X-Gemini-Key":    geminiKey,
+
           ...(brightdataToken ? { "X-Brightdata-Token": brightdataToken } : {}),
         },
         body: JSON.stringify(request),

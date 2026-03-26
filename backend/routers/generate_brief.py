@@ -1,10 +1,10 @@
 # backend/routers/generate_brief.py
-
 import logging
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from config import get_settings
 from google import genai
+from services.brightdata import check_rate_limit
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -35,9 +35,18 @@ def fmt_dollars(n: float) -> str:
 
 @router.post("/api/generate-brief")
 async def generate_brief(req: BriefRequest, http_request: Request):
+    # Rate limiting
+    client_ip = http_request.client.host if http_request.client else "unknown"
+    allowed, _ = check_rate_limit(client_ip)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Request limit reached.",
+            headers={"Retry-After": "3600"},
+        )
+
     # Accept key from header (user-supplied) or fall back to env var
     gemini_key = http_request.headers.get("X-Gemini-Key") or get_settings().gemini_api_key
-
     if not gemini_key:
         raise HTTPException(status_code=401, detail="Gemini API key required.")
 

@@ -9,9 +9,13 @@ If brightdata_token is not provided, falls back to cache only.
 import httpx
 import json
 import logging
+import os
 import time
 from collections import defaultdict
 from pathlib import Path
+
+import redis as redis_client
+
 from config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -82,7 +86,32 @@ _RATE_LIMIT_MAX      = 20
 _RATE_LIMIT_WINDOW_S = 3600
 _rate_limit_store: dict[str, list[float]] = defaultdict(list)
 
+def _get_redis() -> redis_client.Redis | None:
+    url = os.environ.get("REDIS_URL")
+    if url:
+        try:
+            return redis_client.from_url(url, decode_responses=True)
+        except Exception as e:
+            logger.warning(f"Redis connection failed: {e}")
+    return None
+
 def check_rate_limit(ip: str) -> tuple[bool, int]:
+    r = _get_redis()
+
+    if r is not None:
+        try:
+            key = f"rate:{ip}"
+            pipe = r.pipeline()
+            pipe.incr(key)
+            pipe.expire(key, _RATE_LIMIT_WINDOW_S)
+            count, _ = pipe.execute()
+            if count > _RATE_LIMIT_MAX:
+                return False, 0
+            return True, _RATE_LIMIT_MAX - count
+        except Exception as e:
+            logger.warning(f"Redis rate limit error, falling back to memory: {e}")
+
+    # メモリフォールバック
     now = time.time()
     window_start = now - _RATE_LIMIT_WINDOW_S
     _rate_limit_store[ip] = [t for t in _rate_limit_store[ip] if t > window_start]
@@ -126,7 +155,6 @@ async def gather_montgomery_context(
     if cached is not None:
         return cached
 
-    # Resolve token: user-supplied → env var → skip
     settings = get_settings()
     token = brightdata_token or settings.brightdata_api_token
     zone  = settings.brightdata_web_unlocker_zone
