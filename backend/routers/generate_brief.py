@@ -46,7 +46,7 @@ async def generate_brief(req: BriefRequest, http_request: Request):
         )
 
     # Accept key from header (user-supplied) or fall back to env var
-    gemini_key = http_request.headers.get("X-Gemini-Key") or get_settings().gemini_api_key
+    gemini_key = http_request.headers.get("X-Gemini-Key")
     if not gemini_key:
         raise HTTPException(status_code=401, detail="Gemini API key required.")
 
