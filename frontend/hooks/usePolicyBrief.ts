@@ -1,3 +1,5 @@
+// frontend/hooks/usePolicyBrief.ts
+
 "use client"
 import { useState } from "react"
 import type { SimulationInput, SimulationOutput, TimeHorizon } from "@/types/simulation"

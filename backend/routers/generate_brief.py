@@ -3,8 +3,8 @@ import logging
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from config import get_settings
-from google import genai
 from services.brightdata import check_rate_limit
+from services.ai_provider import generate_text
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -50,13 +50,19 @@ async def generate_brief(req: BriefRequest, http_request: Request):
     if not gemini_key:
         raise HTTPException(status_code=401, detail="Gemini API key required.")
 
-    try:
-        genai.configure(api_key=gemini_key)
-        client = genai.GenerativeModel(get_settings().gemini_model)
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid Gemini API key.")
-
     prompt = f"""You are a senior policy advisor for Montgomery, Alabama. Generate a concise executive policy brief (3-4 paragraphs) based on this simulation:
+
+    try:
+        brief = await generate_text(
+            system_prompt="You are a senior policy advisor for Montgomery, Alabama.",
+            user_prompt=prompt,
+            gemini_key=gemini_key,
+        )
+        return {"brief": brief}
+    except Exception as e:
+        if "API_KEY_INVALID" in str(e) or "invalid" in str(e).lower():
+            raise HTTPException(status_code=401, detail="Invalid Gemini API key.")
+        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
 
 Time Horizon: {req.horizon} years
 
@@ -75,11 +81,3 @@ Projected Outcomes:
 - Net City ROI: {fmt_dollars(req.netROI)}
 
 Write in plain paragraphs only. Do NOT use markdown, headers, or memo format (no To/From/Date/Subject lines). Start directly with the policy analysis. Focus on equity, long-term economic resilience, and the compounding value of investing in marginalized populations."""
-
-    try:
-        response = client.generate_content(prompt)
-        return {"brief": response.text}
-    except Exception as e:
-        if "API_KEY_INVALID" in str(e) or "invalid" in str(e).lower():
-            raise HTTPException(status_code=401, detail="Invalid Gemini API key.")
-        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")

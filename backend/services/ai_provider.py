@@ -22,6 +22,15 @@ def _get_client(gemini_key: str | None = None) -> genai.Client:
     key = gemini_key or settings.gemini_api_key
     return genai.Client(api_key=key)
 
+async def generate_text(system_prompt: str, user_prompt: str, gemini_key: str | None = None) -> str:
+    settings = get_settings()
+    client = _get_client(gemini_key)
+    full_prompt = f"{system_prompt}\n\n{user_prompt}"
+    response = client.models.generate_content(
+        model=settings.gemini_model,
+        contents=full_prompt,
+    )
+    return response.text.strip()
 
 async def generate_json(system_prompt: str, user_prompt: str, gemini_key: str | None = None) -> dict:
     """
