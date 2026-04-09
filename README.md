@@ -65,7 +65,8 @@ Enter a resident profile: age, ZIP, education, income, career interest, transpor
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   DATA LAYER                        │
-│  Bright Data Web Unlocker → brightdata.py           │
+│  Cleansed Open Data: City of Montgomery             |
+|  Bright Data Web Unlocker → brightdata.py           │
 │  scrape-baselines.ts → simulation-constants.ts      │
 │  (auto-generated from Census, BLS, HUD, AL DOC)     │
 └──────────────────┬──────────────────────────────────┘
